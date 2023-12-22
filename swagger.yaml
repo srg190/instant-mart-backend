@@ -1,0 +1,791 @@
+swagger: "2.0"
+info:
+  title: E-Commerce
+  version: 1.0.0
+paths:
+  paths:
+  /api/v1/register:
+    post:
+      tags:
+        - User
+      summary: Register a new user
+      description: Create a new user account with name, email, password, and image fields.
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: name
+          type: string
+          required: true
+          description: User's name
+        - in: formData
+          name: email
+          type: string
+          required: true
+          description: User's email
+        - in: formData
+          name: password
+          type: string
+          format: password
+          required: true
+          description: User's password
+        - in: formData
+          name: avatar
+          type: file
+          required: true
+          description: User's profile image
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+  /api/v1/login:
+    post:
+      tags:
+        - User
+      summary: User login
+      description: Authenticate user with email and password.
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: email
+          type: string
+          required: true
+          description: User's email
+        - in: formData
+          name: password
+          type: string
+          format: password
+          required: true
+          description: User's password
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+
+  /api/v1/logout:
+    get:
+      tags:
+        - User
+      summary: Log out a user
+      description: Logs out the currently authenticated user
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+      security:
+        - BearerAuth: []
+
+  /api/v1/password/forgot:
+    post:
+      tags:
+        - User
+      summary: Forgot Your password
+      description: Check By Email
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: email
+          type: string
+          required: true
+          description: User's email
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+
+  /api/v1/password/reset/{token}:
+    put:
+      tags:
+        - User
+      summary: Reset Password
+      description: Reset user password using the provided reset token.
+      parameters:
+        - in: path
+          name: token
+          description: Reset token received via email.
+          required: true
+          schema:
+            type: string
+        - in: formData
+          name: newPassword
+          description: New password for the user.
+          required: true
+          type: string
+        - in: formData
+          name: confirmPassword
+          description: Confirm password for the user.
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Password reset successful.
+        "400":
+          description: Bad Request - Invalid or expired token.
+        "500":
+          description: Internal Server Error.
+
+  /api/v1/me:
+    get:
+      tags:
+        - User
+      summary: Get User Details
+      description: Retrieve details of the authenticated user.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  createdAt:
+                    type: string
+                  updatedAt:
+                    type: string
+        "401":
+          description: Unauthorized - User not authenticated
+        "500":
+          description: Internal Server Error
+
+  /api/v1/password/update:
+    put:
+      tags:
+        - User
+      summary: Update Password
+      description: Update the password of the authenticated user.
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: oldPassword
+          description: Current password of the user.
+          required: true
+          type: string
+          format: password
+        - in: formData
+          name: newPassword
+          description: New password for the user.
+          required: true
+          type: string
+          format: password
+        - in: formData
+          name: confirmPassword
+          description: Confirm password for the user.
+          required: true
+          type: string
+          format: password
+      responses:
+        "200":
+          description: Password updated successfully
+        "400":
+          description: Bad request - Invalid or mismatched passwords
+        "401":
+          description: Unauthorized - User not authenticated
+        "500":
+          description: Internal Server Error
+
+  /api/v1/me/update:
+    put:
+      tags:
+        - User
+      summary: Update Profile
+      description: Update the profile information of the authenticated user.
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: name
+          description: New name for the user.
+          required: true
+          type: string
+        - in: formData
+          name: email
+          description: New email for the user.
+          required: true
+          type: string
+          format: email
+        - in: formData
+          name: avatar
+          description: New avatar image for the user.
+          required: false
+          type: file
+      responses:
+        "200":
+          description: Profile updated successfully
+        "400":
+          description: Bad request - Invalid profile data
+        "401":
+          description: Unauthorized - User not authenticated
+        "500":
+          description: Internal Server Error
+
+  /api/v1/admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get All Users
+      description: Get a list of all users with the admin role.
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: page
+          description: Page number for pagination.
+          required: false
+          type: integer
+        - in: query
+          name: limit
+          description: Maximum number of users per page.
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: Users retrieved successfully
+        "401":
+          description: Unauthorized - User not authenticated or not an admin
+        "500":
+          description: Internal Server Error
+
+  /api/v1/admin/user/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Get single user details
+      description: Retrieve details of a single user by their ID
+      parameters:
+        - in: path
+          name: id
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Users retrieved successfully
+        "401":
+          description: Unauthorized - User not authenticated or not an admin
+        "500":
+          description: Internal Server Error
+
+    put:
+      tags:
+        - Admin
+      summary: Update user role
+      description: Update the role of a user by their ID
+      parameters:
+        - in: path
+          name: id
+          description: User ID
+          required: true
+          schema:
+            type: string
+        - in: formData
+          name: name
+          description: User's name
+          required: true
+          type: string
+        - in: formData
+          name: email
+          description: User's email
+          required: true
+          type: string
+        - in: formData
+          name: role
+          description: User's role
+          required: true
+          type: string
+      responses:
+        "200":
+          description: User role updated successfully
+        "401":
+          description: Unauthorized - User not authenticated or not an admin
+        "500":
+          description: Internal Server Error
+
+    delete:
+      tags:
+        - Admin
+      summary: Delete user
+      description: Delete a user by their ID
+      parameters:
+        - in: path
+          name: id
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User deleted successfully
+        "401":
+          description: Unauthorized - User not authenticated or not an admin
+        "500":
+          description: Internal Server Error
+
+  /api/v1/admin/product/new:
+    post:
+      tags:
+        - Product
+      summary: Create a new product
+      description: Create a new product with multiple images
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: name
+          type: string
+          required: true
+          description: Product name
+        - in: formData
+          name: description
+          type: string
+          required: true
+          description: Product description
+        - in: formData
+          name: price
+          type: number
+          required: true
+          description: Product price
+        - in: formData
+          name: images
+          type: array
+          items:
+            type: file
+          required: true
+          description: Product images
+        - in: formData
+          name: category
+          type: string
+          required: true
+          description: Product category
+        - in: formData
+          name: stock
+          type: number
+          required: true
+          description: Product stock number
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+
+  /api/v1/admin/products:
+    get:
+      tags:
+        - Product
+      summary: Get all products (Admin)
+      description: Retrieve all products for admin users
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  products:
+                    type: array
+                    items:
+                      type: object
+        "500":
+          description: Internal Server Error
+
+  /api/v1/admin/product/{id}:
+    put:
+      tags:
+        - Product
+      summary: Update a product (Admin)
+      description: Update details of a product by ID for admin users
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID of the product to update
+          schema:
+            type: string
+        - in: formData
+          name: name
+          type: string
+          required: true
+          description: Product name
+        - in: formData
+          name: description
+          type: string
+          required: true
+          description: Product description
+        - in: formData
+          name: price
+          type: number
+          required: true
+          description: Product price
+        - in: formData
+          name: images
+          type: array
+          items:
+            type: file
+          required: true
+          description: Product images
+        - in: formData
+          name: category
+          type: string
+          required: true
+          description: Product category
+        - in: formData
+          name: stock
+          type: number
+          required: true
+          description: Product stock number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  product:
+                    type: object
+        "404":
+          description: Product Not Found
+        "500":
+          description: Internal Server Error
+
+    delete:
+      tags:
+        - Product
+      summary: Delete a product
+      description: Delete a product by its ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Product ID
+      responses:
+        "200":
+          description: Product deleted successfully
+        "404":
+          description: Product not found
+        "500":
+          description: Internal Server Error
+
+  /api/v1/product/{id}:
+    get:
+      tags:
+        - Product
+      summary: Get product details
+      description: Retrieve details of a specific product by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Product ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Product not found
+        "500":
+          description: Internal Server Error
+
+  /api/v1/review:
+    put:
+      tags:
+        - Product-Review
+      summary: Create or update a product review
+      description: Create or update a review for a specific product
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: rating
+          type: number
+          required: true
+          description: Rating for the product
+        - in: formData
+          name: comment
+          type: string
+          required: true
+          description: Review comment
+        - in: formData
+          name: productId
+          type: string
+          required: true
+          description: Product ID
+      responses:
+        "200":
+          description: Review created or updated successfully
+        "500":
+          description: Internal Server Error
+  /api/v1/reviews:
+    get:
+      tags:
+        - Product-Review
+      summary: Get product reviews
+      description: Get reviews for a product by its ID
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Product ID
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  reviews:
+                    type: array
+                    items:
+                      type: object
+        "404":
+          description: Product not found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Product-Review
+      summary: Delete a review
+      description: Delete a review by its ID
+      parameters:
+        - in: query
+          name: productId
+          required: true
+          schema:
+            type: string
+          description: Product ID
+        - in: query
+          name: id
+          # required: true
+          schema:
+            type: string
+          description: Review ID
+      responses:
+        "200":
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        "404":
+          description: Product not found
+        "500":
+          description: Internal Server Error
+
+  /api/v1/order/new:
+    post:
+      tags:
+        - Order
+      summary: "Create a new order"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: body
+          name: order
+          description: "Order details"
+          required: true
+      responses:
+        201:
+          description: "Order created successfully"
+        400:
+          description: "Bad request"
+
+  /api/v1/order/{id}:
+    get:
+      tags:
+        - Order
+      summary: "Get Single Order"
+      description: "Get details of a single order by ID"
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the order"
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: object
+            properties:
+              succes:
+                type: boolean
+              order:
+                type: object
+        404:
+          description: "Order not found"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              statusCode:
+                type: integer
+  /api/v1/orders/me:
+    get:
+      tags:
+        - Order
+      summary: "My Orders"
+      description: "Get orders for a specific user"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              orders:
+                type: array
+                items:
+                  type: object
+      401:
+        description: "Unauthorized"
+
+  /api/v1/admin/orders:
+    get:
+      tags:
+        - Order
+      summary: "Get all orders"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "Success"
+        500:
+          description: "Internal Server Error"
+
+  /api/v1/admin/order/{id}:
+    put:
+      tags:
+        - Order
+      summary: "Create or update a product review"
+      description: "Create or update a review for a specific product"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "application/json"
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the order"
+          required: true
+          type: string
+        - in: formData
+          name: status
+          type: string
+          required: true
+          description: "Delivery status of product"
+      responses:
+        "200":
+          description: "Review created or updated successfully"
+        "500":
+          description: "Internal Server Error"
+
+    delete:
+      tags:
+        - Order
+      summary: Delete a order
+      description: Delete a order by its ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Order ID
+      responses:
+        "200":
+          description: Order deleted successfully
+        "404":
+          description: Order not found
+        "500":
+          description: Internal Server Error
+
+  /api/v1/payment/process:
+    post:
+      tags:
+        - Payment
+      summary: "Make Payment"
+      description: "Payment of Total Amount"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "application/json"
+      parameters:
+        - in: formData
+          name: amount
+          type: number
+          required: true
+          description: "Payment amount"
+      responses:
+        "200":
+          description: "Your payment successfully"
+        "500":
+          description: "Internal Server Error"
+  /api/v1/stripapikey:
+    get:
+      tags:
+        - Payment
+      summary: "Get Payment Secret Key"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Your payment secret"
+        "500":
+          description: "Internal Server Error"
